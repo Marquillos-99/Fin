@@ -1,0 +1,94 @@
+/* Asegúrate de que en tu CSS global (por ejemplo, index.css o App.css)
+   se defina: html, body, #root { height: 100%; margin: 0; padding: 0; } */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Contenedor principal */
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Estilos para el MapContainer */
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 75vh; /* Ajusta este valor según tu diseño */
+  border: 2px solid #611232;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+/* Panel de controles (ubicados sobre el mapa) */
+.map-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: black;
+}
+
+/* Grupo de botones */
+.control-group {
+  display: flex;
+  gap: 5px;
+}
+
+/* Botón de control */
+.control-button {
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Botón para detener la ubicación */
+.control-button.stop {
+  background-color: red;
+}
+
+/* Estilo activo para el botón */
+.control-button.active {
+  background-color: #0056b3;
+}
+
+.tile-selector {
+  position: absolute;
+  top: 17%;
+  left: 10px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  backdrop-filter: blur(5px);
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 5px;
+  border-radius: 4px;
+  font-size: 20px;
+  left: 10px;
+  color: black;
+}
+
+.tile-selector label {
+  cursor: pointer;
+}
+
+/* Responsive: ajustes para pantallas pequeñas */
+@media screen and (max-width: 768px) {
+  .map-container {
+    height: 80vh;
+    width: 95vw;
+  }
+}

@@ -1,0 +1,30 @@
+.welcome-animation {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Ocupa toda la ventana */
+  width: 100vw; /* Ocupa toda la ventana */
+  background: #f0f0f0;
+  opacity: 1;
+  transition: opacity 1s ease-out;
+  color: black;
+}
+
+.welcome-animation.fade-out {
+  opacity: 0;
+}
+
+.spinning-map img {
+  width: 200px;
+  animation: spin 5s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

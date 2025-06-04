@@ -1,0 +1,175 @@
+/* Reset global (opcional, pero recomendado) */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  overflow-x: hidden;
+  top: 0;
+}
+
+/* Header original con tus colores, pero width: 100% */
+.header {
+  top: 0;
+  left: 0;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%; /* Cambiado de 100vw a 100% */
+  height: auto;
+  justify-content: space-between;
+  z-index: 1000;
+}
+
+/* Parte superior del header */
+.header-top {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #611232; /* Fondo marrón/marroón */
+  padding: 10px 10px;
+  color: #fff;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  height: 48px;
+}
+
+.logo-container img {
+  height: 48px;
+  margin-right: 20px;
+}
+
+.logo-text {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.nav-top,
+.nav-bottom {
+  display: flex;
+  align-items: center;
+}
+
+.nav-bottom,
+.nav-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.nav-top .nav-button {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1em;
+  margin: 0 8px;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+
+a.nav-button {
+  text-decoration: none;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+a.nav-button:visited,
+a.nav-button:active,
+a.nav-button:focus {
+  text-decoration: none;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.nav-top .nav-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+/* Parte inferior del header */
+.header-bottom {
+  background-color: #a57f2c; /* Fondo dorado */
+  padding: 8px 20px;
+}
+
+.nav-bottom {
+  display: flex;
+  justify-content: right;
+  gap: 20px;
+}
+
+.nav-bottom a {
+  text-decoration: none;
+  color: #000;
+  font-size: 1em;
+  font-weight: 500;
+}
+
+.nav-bottom a:hover {
+  text-decoration: underline;
+}
+
+@media screen and (max-width: 768px) {
+  .header-top,
+  .header-bottom {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .nav-top {
+    align-items: left;
+    /* 'padding: auto' no es válido, se recomienda omitirlo o establecer un valor fijo */
+    gap: 0px;
+  }
+  .nav-bottom {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+    justify-content: center;
+  }
+
+  .logo-container img {
+    height: 30px; /* Reduce el tamaño en móviles */
+  }
+}
+
+/* Direcciones */
+.option-panel {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f4f4f4;
+  border-radius: 8px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.option-panel button {
+  padding: 8px 16px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: #0057b8;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.option-panel button:hover {
+  background-color: #003f88;
+}
