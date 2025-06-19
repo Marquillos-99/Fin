@@ -1,35 +1,25 @@
-import React, { useState, useEffect } from "react";
+// src/components/GridSanpava.jsx
+import React from "react";
 import MapaSanpava from "./MapaSanpava";
 import "../../Styles/Sanpava/GridSanpava.css";
+import { useGeoFeatures } from "../../context/GeoFeaturesContext";
 
 const GridSanpava = () => {
-  const [geoFeatures, setGeoFeatures] = useState([]);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const { geoFeatures, selectedIndex, setSelectedIndex, selectedFeature, loading, error } = useGeoFeatures();
 
-  useEffect(() => {
-    fetch("/Sanpava.json")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Error al obtener el JSON");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data.features && data.features.length > 0) {
-          setGeoFeatures(data.features);
-          setSelectedIndex(0);
-        }
-      })
-      .catch((error) => console.error("Error al cargar el JSON:", error));
-  }, []);
-
-  if (geoFeatures.length === 0) {
+  if (loading) {
     return <div>Cargando datos...</div>;
   }
 
-  const selectedFeature = geoFeatures[selectedIndex].properties;
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
-  // Función para calcular años y meses transcurridos desde la fecha de decreto
+  if (geoFeatures.length === 0) {
+    return <div>No se encontraron datos</div>;
+  }
+
+  // Calcula los años y meses transcurridos desde la fecha de decreto
   const calcularTiempoTranscurrido = (fecha) => {
     const fechaDecreto = new Date(fecha);
     const fechaActual = new Date();
@@ -61,39 +51,42 @@ const GridSanpava = () => {
       </div>
 
       <div className="grid-item">
-        <strong>Nombre:</strong> {selectedFeature.NOMBRE}
+        <strong>Nombre:</strong> {selectedFeature?.NOMBRE ?? 'No disponible'}
       </div>
 
       <div className="grid-item">
         <strong>Superficie:</strong>{" "}
-        {selectedFeature.Shape_Area.toLocaleString()}
+        {selectedFeature?.Shape_Area?.toLocaleString() ?? 'No disponible'}
       </div>
 
       <div className="grid-item">
-        <strong>Categoría:</strong> {selectedFeature.Categoria}
+        <strong>Categoría:</strong> {selectedFeature?.Categoria ?? 'No disponible'}
       </div>
 
       <div className="grid-item">
-        <strong>Tipo:</strong> {selectedFeature.TipoDecret}
+        <strong>Tipo:</strong> {selectedFeature?.TipoDecret ?? 'No disponible'}
       </div>
 
       <div className="grid-item">
         <strong>Fecha de Decreto:</strong>{" "}
-        {new Date(selectedFeature.Fecha_Cre).toLocaleDateString()}
+        {selectedFeature?.Fecha_Cre ? new Date(selectedFeature.Fecha_Cre).toLocaleDateString() : 'No disponible'}
       </div>
 
       <div className="grid-item">
-        <strong>Ubicación:</strong> {selectedFeature.Delegacion}
+        <strong>Ubicación:</strong> {selectedFeature?.Delegacion ?? 'No disponible'}
       </div>
 
-      {/* Nuevo campo para mostrar el tiempo transcurrido desde el decreto */}
       <div className="grid-item">
         <strong>Tiempo transcurrido:</strong>{" "}
-        {calcularTiempoTranscurrido(selectedFeature.Fecha_Cre)}
+        {selectedFeature?.Fecha_Cre ? calcularTiempoTranscurrido(selectedFeature.Fecha_Cre) : 'No disponible'}
       </div>
 
       <div className="grid-item mapa">
-        <MapaSanpava />
+        <MapaSanpava
+          features={geoFeatures}
+          selectedIndex={selectedIndex}
+          onFeatureSelect={setSelectedIndex}
+        />
       </div>
     </div>
   );

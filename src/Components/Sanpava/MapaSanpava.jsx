@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// src/components/MapaSanpava.jsx
+import React, { useEffect, useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -8,6 +9,7 @@ import {
   useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 import "../../Styles/Sanpava/MapaSanpava.css";
 
 // Componente para rastrear la ubicación en tiempo real
@@ -26,7 +28,7 @@ const LocationMarker = () => {
         const { latitude, longitude } = pos.coords;
         const newPos = [latitude, longitude];
         setPosition(newPos);
-        // Actualiza la vista del mapa a la ubicación actual
+        // Actualiza la vista del mapa a la ubicación actual conservando el zoom actual
         map.setView(newPos, map.getZoom());
       },
       (err) => console.error("Error al obtener la ubicación:", err),
@@ -43,45 +45,61 @@ const LocationMarker = () => {
   );
 };
 
-const MapaSanpava = () => {
-  // Estado para rastrear si se está mostrando la ubicación
-  const [tracking, setTracking] = useState(false);
-  // Estado para seleccionar la capa base: "streets", "satellite" o "terrain"
-  const [selectedMap, setSelectedMap] = useState("streets");
-  // Estado para almacenar los datos GeoJSON
-  const [geoData, setGeoData] = useState(null);
+// Componente para actualizar la vista del mapa según la feature seleccionada
+const SelectedFeatureUpdater = ({ feature }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (feature) {
+      // Creamos una capa temporal para obtener los límites de la feature
+      const layer = L.geoJSON(feature);
+      map.fitBounds(layer.getBounds());
+    }
+  }, [feature, map]);
+  return null;
+};
 
-  const [tileOption, setTileOption] = useState("anps");
-
+const MapaSanpava = ({ features, selectedIndex, onFeatureSelect }) => {
   const center = [19.4326, -99.1332];
   const maxBounds = [
     [19.592, -99.364],
     [19.18, -98.96],
   ];
 
-  // Carga el GeoJSON desde el archivo Sanpava.json (ubicado en public)
-  useEffect(() => {
-    fetch("/Sanpava.json")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Error al obtener Sanpava.json");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Geo data loaded:", data);
-        setGeoData(data);
-      })
-      .catch((error) => console.error("Error al cargar el GeoJSON:", error));
-  }, []);
+  // Construimos el objeto GeoJSON a partir de las features recibidas
+  const geoData = features
+    ? {
+        type: "FeatureCollection",
+        features: features,
+      }
+    : null;
+
+  // Función para vincular el evento click a cada feature
+  const onEachFeature = (feature, layer) => {
+    if (feature.properties && feature.properties.NOMBRE) {
+      layer.bindPopup(
+        `<strong>${feature.properties.NOMBRE}</strong><br/>Delegación: ${feature.properties.Delegacion}`
+      );
+    }
+    layer.on("click", () => {
+      // Buscamos la feature en la lista (por ejemplo usando el nombre)
+      const index = features.findIndex(
+        (f) => f.properties.NOMBRE === feature.properties.NOMBRE
+      );
+      if (index !== -1 && onFeatureSelect) {
+        onFeatureSelect(index);
+      }
+    });
+  };
+
+  // Estados para controles del mapa (geolocalización, cambio de capa y selector de "tiles")
+  const [tracking, setTracking] = useState(false);
+  const [selectedMap, setSelectedMap] = useState("streets");
+  const [tileOption, setTileOption] = useState("anps");
 
   return (
     <div className="map-wrapper">
-      {/* Panel de controles para los botones de geolocalización y cambio de capa */}
+      {/* Controles superiores */}
       <div className="map-controls">
-        {/*
-          Botón de ubicación: muestra "Ubicarme" si no se está rastreando y "Parar Ubicación" si se está.
-        */}
         {!tracking ? (
           <button onClick={() => setTracking(true)} className="control-button">
             Ubicarme
@@ -94,8 +112,6 @@ const MapaSanpava = () => {
             Parar Ubicación
           </button>
         )}
-
-        {/* Botones para cambiar la capa base */}
         <div className="control-group">
           <button
             onClick={() => setSelectedMap("streets")}
@@ -158,7 +174,6 @@ const MapaSanpava = () => {
         maxBoundsViscosity={0.8}
         className="map-container"
       >
-        {/* Capas base según la selección */}
         {selectedMap === "streets" && (
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -180,7 +195,7 @@ const MapaSanpava = () => {
 
         {tracking && <LocationMarker />}
 
-        {/* Superposición del GeoJSON desde Sanpava.json */}
+        {/* Capa GeoJSON con las features y eventos asociados */}
         {geoData && (
           <GeoJSON
             data={geoData}
@@ -190,14 +205,13 @@ const MapaSanpava = () => {
               fillColor: "#1abc9c",
               fillOpacity: 0.5,
             }}
-            onEachFeature={(feature, layer) => {
-              if (feature.properties && feature.properties.NOMBRE) {
-                layer.bindPopup(
-                  `<strong>${feature.properties.NOMBRE}</strong><br/>Delegación: ${feature.properties.Delegacion}`
-                );
-              }
-            }}
+            onEachFeature={onEachFeature}
           />
+        )}
+
+        {/* Actualiza la vista del mapa cuando cambia la selección en el grid */}
+        {features && features[selectedIndex] && (
+          <SelectedFeatureUpdater feature={features[selectedIndex]} />
         )}
       </MapContainer>
     </div>
