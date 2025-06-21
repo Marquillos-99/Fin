@@ -29,23 +29,26 @@ body {
 /* Parte superior del header */
 .header-top {
   width: 100%;
+  height: 100px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: #611232; /* Fondo marrón/marroón */
-  padding: 10px 10px;
   color: #fff;
+  margin: 0px;
 }
 
 .logo-container {
   display: flex;
   align-items: center;
-  height: 48px;
+  height: 70px;
+  width: 200px;
 }
 
 .logo-container img {
-  height: 48px;
+  height: 60%;
   margin-right: 20px;
+  margin-left: 240%;
 }
 
 .logo-text {
@@ -113,14 +116,32 @@ a.nav-button:focus {
 }
 
 .nav-bottom a {
+  position: relative;
   text-decoration: none;
   color: #000;
   font-size: 1em;
   font-weight: 500;
+  padding: 4px 0;
+  transition: color 0.3s ease;
+}
+
+.nav-bottom a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: #611232; /* Matching the header top color */
+  transition: width 0.3s ease, background-color 0.3s ease;
 }
 
 .nav-bottom a:hover {
-  text-decoration: underline;
+  color: #611232; /* Darker color on hover */
+}
+
+.nav-bottom a:hover::after {
+  width: 100%;
 }
 
 @media screen and (max-width: 768px) {

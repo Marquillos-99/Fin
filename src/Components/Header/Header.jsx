@@ -30,11 +30,7 @@ const Header = () => {
     <header>
       <div className="header-top">
         <div className="logo-container">
-          <img
-            src="https://www.construction21.org/data/sources/users/50969/20230308232500-logosedema3compacto.jpg"
-            alt="Gobierno de la Ciudad de México"
-          />
-          <span className="logo-text">Gobierno de la Ciudad de México</span>
+          <img src="/SIA.png" alt="Gobierno de la Ciudad de México" />
         </div>
         <nav className="nav-top">
           {/* Botón "Inicio" para regresar a la página principal */}
