@@ -107,12 +107,17 @@ a.nav-button:focus {
 .header-bottom {
   background-color: #a57f2c; /* Fondo dorado */
   padding: 8px 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .nav-bottom {
   display: flex;
-  justify-content: right;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .nav-bottom a {
@@ -121,50 +126,113 @@ a.nav-button:focus {
   color: #000;
   font-size: 1em;
   font-weight: 500;
-  padding: 4px 0;
+  padding: 8px 0;
   transition: color 0.3s ease;
+  white-space: nowrap;
 }
 
 .nav-bottom a::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 0;
   height: 2px;
-  bottom: 0;
+  bottom: 4px;
   left: 0;
-  background-color: #611232; /* Matching the header top color */
-  transition: width 0.3s ease, background-color 0.3s ease;
+  background-color: #611232;
+  transition: width 0.3s ease;
 }
 
 .nav-bottom a:hover {
-  color: #611232; /* Darker color on hover */
+  color: #611232;
 }
 
 .nav-bottom a:hover::after {
   width: 100%;
 }
 
+/* Responsive styles */
+@media screen and (max-width: 992px) {
+  .nav-bottom {
+    gap: 15px;
+  }
+
+  .nav-bottom a {
+    font-size: 0.9em;
+  }
+}
+
 @media screen and (max-width: 768px) {
-  .header-top,
   .header-bottom {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    padding: 12px 15px;
   }
-  .nav-top {
-    align-items: left;
-    /* 'padding: auto' no es válido, se recomienda omitirlo o establecer un valor fijo */
-    gap: 0px;
+
+  .nav-bottom {
+    justify-content: center;
+    gap: 12px;
   }
+
+  .nav-bottom a {
+    padding: 6px 8px;
+    font-size: 0.85em;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .header-bottom {
+    padding: 10px;
+  }
+
   .nav-bottom {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 5px;
-    justify-content: center;
+    gap: 8px;
+    text-align: center;
+  }
+
+  .nav-bottom a {
+    padding: 6px 4px;
+    font-size: 0.8em;
+  }
+
+  .nav-bottom a::after {
+    display: none;
+  }
+
+  .nav-bottom a:hover {
+    background-color: rgba(97, 18, 50, 0.1);
+    border-radius: 4px;
+  }
+}
+
+/* Ajustes adicionales para el header-top en móviles */
+@media screen and (max-width: 768px) {
+  .header-top {
+    height: 60px;
+    padding: 10px 0;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo-container {
+    height: 50px;
+    width: auto;
+    margin-left: 15px;
   }
 
   .logo-container img {
-    height: 30px; /* Reduce el tamaño en móviles */
+    height: 40px;
+    margin: 0;
+  }
+
+  .nav-top {
+    margin-right: 15px;
+  }
+
+  .nav-top .nav-button {
+    margin: 0 5px;
+    padding: 4px 8px;
+    font-size: 0.9em;
   }
 }
 

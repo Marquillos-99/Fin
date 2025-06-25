@@ -1,7 +1,10 @@
-import React, { useState, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { FaArrowRight, FaInfoCircle } from "react-icons/fa";
+import React, { useState, useCallback } from "react";
+import { FaArrowRight } from "react-icons/fa";
 import "../../Styles/Inicio/Direcciones.css";
+import dgcaImage from "../../assets/DGCA.webp";
+import dgeiraImage from "../../assets/Regulacion.webp";
+import dgsanpavaImage from "../../assets/sanpava.webp";
+import dgzcfsImage from "../../assets/zoo.webp";
 
 // Constants
 const DIRECCIONES = [
@@ -72,12 +75,52 @@ const DireccionCard = React.memo(
       }
     };
 
+    // Check which card this is to apply appropriate styles
+    const isDGCACard = title === 'DGCA';
+    const isDGEIRACard = title === 'DGEIRA';
+    const isDGSANPAVACard = title === 'DGSANPAVA';
+    const isDGZCFSCard = title === 'DGZCFS';
+
+    // Get the appropriate background image based on card type
+    let backgroundImage = '';
+    if (isDGCACard) backgroundImage = dgcaImage;
+    else if (isDGEIRACard) backgroundImage = dgeiraImage;
+    else if (isDGSANPAVACard) backgroundImage = dgsanpavaImage;
+    else if (isDGZCFSCard) backgroundImage = dgzcfsImage;
+
+    // Style for cards with background images
+    const cardStyle = backgroundImage
+      ? {
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'brightness(0.9)',
+          transition: 'filter 0.5s ease',
+          '--card-gradient': 'none',
+        }
+      : { "--card-gradient": gradient };
+      
+    // Hover handlers for cards with background images
+    const handleMouseEnter = (e) => {
+      if (backgroundImage) {
+        e.currentTarget.style.filter = 'brightness(1.3)';
+      }
+    };
+    
+    const handleMouseLeave = (e) => {
+      if (backgroundImage) {
+        e.currentTarget.style.filter = 'brightness(0.9)';
+      }
+    };
+
     return (
       <div
         className={`direccion-card ${isSelected ? "selected" : ""}`}
         onClick={onClick}
         onKeyDown={handleKeyDown}
-        style={{ "--card-gradient": gradient }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        style={cardStyle}
         role="button"
         tabIndex={0}
         aria-label={`Ver información de ${fullName}`}
@@ -100,32 +143,13 @@ const DireccionCard = React.memo(
  */
 const Direcciones = () => {
   const [selectedId, setSelectedId] = useState(null);
-  const navigate = useNavigate();
 
   const handleSelect = useCallback((id) => {
     setSelectedId((prevId) => (prevId === id ? null : id));
   }, []);
 
-  const handleMoreInfo = useCallback(
-    (id) => {
-      navigate(`/direcciones/${id}`);
-    },
-    [navigate]
-  );
-
-  const selectedDireccion = useMemo(
-    () => DIRECCIONES.find((dir) => dir.id === selectedId),
-    [selectedId]
-  );
-
   return (
     <div className="direcciones-container">
-      <h2 className="section-title">Direcciones Generales</h2>
-      <p className="section-description">
-        Selecciona una dirección para ver más información y acceder a sus
-        servicios
-      </p>
-
       <div className="direcciones-grid">
         {DIRECCIONES.map((direccion) => (
           <DireccionCard
@@ -136,22 +160,8 @@ const Direcciones = () => {
           />
         ))}
       </div>
-
-      {selectedDireccion && (
-        <div className="direccion-detail">
-          <h3>{selectedDireccion.fullName}</h3>
-          <p>{selectedDireccion.description}</p>
-          <button
-            className="btn-more-info"
-            onClick={() => handleMoreInfo(selectedDireccion.id)}
-            aria-label={`Más información sobre ${selectedDireccion.title}`}
-          >
-            <FaInfoCircle aria-hidden="true" /> Más información
-          </button>
-        </div>
-      )}
     </div>
   );
-};
+}
 
 export default React.memo(Direcciones);

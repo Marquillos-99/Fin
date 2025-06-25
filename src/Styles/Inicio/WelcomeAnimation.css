@@ -98,8 +98,8 @@
   z-index: 2;
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
   animation: pulse 2s ease-in-out infinite;
-  top: 100px;
-  left: -420px;
+  top: 45px;
+  left: -510px;
   will-change: transform;
 }
 
