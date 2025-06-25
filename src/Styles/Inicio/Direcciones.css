@@ -1,190 +1,225 @@
-/* Contenedor del grid */
-.bento-grid {
+/* Direcciones.css */
+:root {
+  --color-pink: #d44e8d;
+  --color-blue: #3aa9c2;
+  --color-green: #3aa935;
+  --color-yellow: #f6c510;
+  --color-light: #f8f9fa;
+  --color-dark: #343a40;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --border-radius: 12px;
+}
+
+.direcciones-container {
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+.direcciones-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  max-width: 100%;
-  margin: 20px auto;
-  padding: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-/* Estilos base para cada caja */
-.bento-item {
-  width: auto;
-  height: 300px;
-  padding: 120px 15px;
-  text-align: center;
-  border-radius: 15px;
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  font-family: "Arial", sans-serif;
-  font-weight: bold;
-  color: #ffffff;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+.direccion-card {
   position: relative;
+  height: 200px;
+  border-radius: var(--border-radius);
   overflow: hidden;
-  transform: translateZ(0);
-  will-change: transform, box-shadow;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--box-shadow);
+  background: var(
+    --card-gradient,
+    linear-gradient(135deg, var(--color-blue), var(--color-green))
+  );
+  color: white;
+  border: none;
 }
 
-/* Efecto de superposición al hacer hover */
-.bento-item::before {
-  content: '';
+.direccion-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.direccion-card.selected {
+  border: 3px solid white;
+  box-shadow: 0 0 0 2px var(--color-blue), 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-content {
+  position: relative;
+  height: 100%;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.3);
+  transition: var(--transition);
+}
+
+.direccion-card:hover .card-content {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+  text-align: left;
+}
+
+.card-description {
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+  opacity: 0.9;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  text-align: left;
+  line-height: 1.4;
+}
+
+.card-overlay {
   position: absolute;
-  top: 0;
+  bottom: -100%;
   left: 0;
   right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.2);
-  opacity: 0;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1;
-  border-radius: 15px;
-  mix-blend-mode: overlay;
-  transform: scale(0.98);
-  filter: blur(2px);
-}
-
-.bento-item:hover::before {
-  opacity: 1;
-  transform: scale(1);
-  filter: blur(0);
-}
-
-/* Efecto de escala en la imagen de fondo */
-.bento-item::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: inherit;
-  background-size: cover;
-  transform: scale(1);
-  transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
-  z-index: 0;
-}
-
-/* Hover: efectos combinados */
-.bento-item:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-}
-
-.bento-item:hover::before {
-  opacity: 1;
-}
-
-.bento-item:hover::after {
-  transform: scale(1.05);
-}
-
-/* Animación de brillo para el texto */
-@keyframes textGlow {
-  0% {
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 255, 255, 0.3);
-  }
-  50% {
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 25px rgba(255, 255, 255, 0.5);
-  }
-  100% {
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 255, 255, 0.3);
-  }
-}
-
-/* Texto dentro del ítem */
-.bento-item {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.8);
+  transition: var(--transition);
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  padding: 20px;
-  font-size: 1.2em;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
-  color: #fff;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  will-change: text-shadow, transform;
+  justify-content: space-between;
 }
 
-/* Efecto de brillo al hacer hover */
-.bento-item:hover {
-  animation: textGlow 2s infinite ease-in-out;
-}
-
-/* Efecto visual para la caja seleccionada */
-.bento-item.selected {
-  border: 3px solid #ffffff;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
-  transform: translateY(-5px) scale(1.02);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-/* Asegurar que el contenido se muestre correctamente */
-.bento-item {
-  position: relative;
-}
-
-.bento-item::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+.direccion-card:hover .card-overlay {
   bottom: 0;
-  background: inherit;
-  background-size: cover;
-  z-index: -1;
-  border-radius: 15px;
-  transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Gradientes temáticos para cada opción */
-/* DGCA - Calidad del aire */
-.bento-item.dgca {
-  background: linear-gradient(135deg, #4a90e2, #50c9ce);
-  background-image: url("../../assets/DGCA.webp");
-  background-size: cover;
-  background-position: 150% 60%;
+.card-fullname {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  flex: 1;
+  margin-right: 1rem;
+  text-align: left;
 }
 
-/* DGEIRA - Impacto y regulación ambiental */
-.bento-item.dgeira {
-  background: linear-gradient(135deg, #f5a623, #f8e71c);
-  background-image: url("../../assets/Regulacion.webp");
-  background-size: cover;
-}
-/* DGZCFS - Zoológicos y conservación de fauna silvestre */
-.bento-item.dgzcfs {
-  background: linear-gradient(135deg, #7ed321, #56ab2f);
-  background-image: url("../../assets/zoo.webp");
-  background-size: cover;
+.card-icon {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
 }
 
-/* DGSANPAVA - Áreas naturales protegidas y valor ambiental */
-.bento-item.dgsanpava {
-  background: linear-gradient(135deg, #bd10e0, #8f3aaf);
-  background-image: url("../../assets/sanpava.webp");
-  background-size: cover;
+.direccion-card:hover .card-icon {
+  transform: translateX(5px);
 }
 
-/* DGCPCA - Políticas y cultura ambiental */
-.bento-item.dgcpca {
-  background: linear-gradient(135deg, #d0021b, #ff416c);
+.direccion-detail {
+  background: white;
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow: var(--box-shadow);
+  animation: fadeIn 0.3s ease-out;
+  border-left: 4px solid var(--color-blue);
 }
 
-/* DGIRA - Inspección y vigilancia ambiental */
-.bento-item.dgira {
-  background: linear-gradient(135deg, #50e3c2, #2aab9b);
+.direccion-detail h3 {
+  color: var(--color-dark);
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
 }
 
-/* DGCORENADR - Recursos naturales y desarrollo rural */
-.bento-item.dgcorenadr {
-  background: linear-gradient(135deg, #8b572a, #a67b5b);
+.direccion-detail p {
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.btn-more-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-blue);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.btn-more-info:hover {
+  background: var(--color-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .direcciones-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+
+  .card-title {
+    font-size: 1.5rem;
+  }
+
+  .direccion-card {
+    height: 180px;
+  }
+
+  .card-content {
+    padding: 1.2rem;
+  }
+
+  .direccion-detail {
+    padding: 1.5rem;
+  }
+}
+
+/* Accessibility */
+.direccion-card:focus {
+  outline: 3px solid var(--color-yellow);
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .direccion-card {
+    break-inside: avoid;
+    height: auto;
+    min-height: 200px;
+  }
+
+  .card-overlay {
+    position: static;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .direccion-detail {
+    break-before: always;
+    border: 1px solid #ddd;
+  }
 }

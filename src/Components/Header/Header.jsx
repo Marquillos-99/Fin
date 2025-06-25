@@ -59,6 +59,15 @@ const Header = () => {
           <a href="#">Acciones y programas</a>
           <a href="#">Documentos</a>
           <a href="#">Contacto</a>
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/mapa-general");
+            }}
+          >
+            Mapa General
+          </a>
           <a href="#">Transparencia</a>
           <a href="#" onClick={handleDireccionesClick}>
             Direcciones
