@@ -1,12 +1,15 @@
 // Mapa.jsx
-import React, { useState, useCallback, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import React, { useState, useCallback, useRef, useEffect } from "react";
+import { MapContainer, TileLayer, WMSTileLayer, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import {
   FaLocationArrow,
   FaRoad,
   FaSatellite,
   FaMountain,
 } from "react-icons/fa";
+import { useGeoFeatures } from "../../context/GeoFeaturesContext";
 import "leaflet/dist/leaflet.css";
 import "../../Styles/MapaGeneral/Mapa.css";
 
@@ -17,11 +20,23 @@ const MAP_TYPES = {
   TERRAIN: "terrain",
 };
 
-const MAP_CENTER = [19.4326, -99.1332]; // Centro de la Ciudad de México
-const MAP_BOUNDS = [
-  [19.592, -99.364], // Esquina superior izquierda
-  [19.18, -98.96], // Esquina inferior derecha
-];
+const MAP_CENTER = [19.25, -99.1];
+const CDMX_BOUNDS = L.latLngBounds(
+  L.latLng(18.9, -99.4),  // Suroeste
+  L.latLng(19.6, -98.9)   // Noreste
+);
+
+// Map configuration
+const MAP_CONFIG = {
+  center: [19.4326, -99.1332], // CDMX coordinates
+  zoom: 12,
+  minZoom: 10,
+  maxZoom: 19,
+  zoomControl: false,
+  attributionControl: false,
+  maxBounds: CDMX_BOUNDS,
+  maxBoundsViscosity: 0.5,
+};
 
 // Tile layer configurations
 const TILE_LAYERS = {
@@ -31,215 +46,284 @@ const TILE_LAYERS = {
   },
   [MAP_TYPES.SATELLITE]: {
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankOnError=false",
-    attribution:
-      "&copy; Esri — Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS",
+    attribution: "&copy; Esri — Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS",
   },
   [MAP_TYPES.TERRAIN]: {
     url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-    attribution:
-      "Map data: &copy; OpenStreetMap contributors, SRTM | Map style: OpenTopoMap (CC-BY-SA)",
+    attribution: "&copy; OpenTopoMap contributors",
   },
 };
 
 /**
- * Componente que maneja el marcador de ubicación del usuario
+ * Componente para los botones de tipo de mapa
  */
-const LocationMarker = React.memo(({ isTracking, onTrackingChange }) => {
-  const [position, setPosition] = useState(null);
-  const watchIdRef = React.useRef(null);
+const MapTypeButton = ({ mapType, currentMapType, onChange, icon: Icon, label }) => (
+  <button
+    type="button"
+    className={`map-btn ${mapType === currentMapType ? "active" : ""}`}
+    onClick={() => onChange(mapType)}
+    title={label}
+    aria-label={label}
+  >
+    <Icon />
+  </button>
+);
+
+/**
+ * Componente para el marcador de ubicación
+ */
+const LocationMarker = ({ isTracking, onTrackingChange }) => {
   const map = useMap();
+  const markerRef = useRef(null);
+  const watchId = useRef(null);
 
-  // Cleanup function to clear any active watchPosition
-  const cleanupWatch = useCallback(() => {
-    if (watchIdRef.current !== null) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-    }
-  }, []);
+  // Crear un ícono personalizado para el marcador
+  const createCustomIcon = () => {
+    return L.divIcon({
+      className: 'location-marker',
+      html: '<div class="pulse"></div>',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+      popupAnchor: [0, -12]
+    });
+  };
 
-  // Center map on user's position
-  const centerMap = useCallback(
-    (coords) => {
-      const { latitude, longitude } = coords;
-      const newPos = [latitude, longitude];
-      setPosition(newPos);
-      map.setView(newPos, 15);
-    },
-    [map]
-  );
-
-  // Handle position updates
-  const handlePositionUpdate = useCallback(
-    (pos) => {
-      if (isTracking) {
-        setPosition([pos.coords.latitude, pos.coords.longitude]);
+  // Efecto para rastrear la ubicación
+  useEffect(() => {
+    if (!isTracking) {
+      // Limpiar si no estamos siguiendo
+      if (markerRef.current) {
+        map.removeLayer(markerRef.current);
+        markerRef.current = null;
       }
-    },
-    [isTracking]
-  );
-
-  // Handle position errors
-  const handlePositionError = useCallback(
-    (error) => {
-      console.error("Error de geolocalización:", error);
-      onTrackingChange(false);
-      cleanupWatch();
-    },
-    [onTrackingChange, cleanupWatch]
-  );
-
-  // Effect to handle location tracking
-  React.useEffect(() => {
-    if (!navigator.geolocation) {
-      console.error("Geolocalización no soportada por el navegador");
+      if (watchId.current) {
+        navigator.geolocation.clearWatch(watchId.current);
+        watchId.current = null;
+      }
       return;
     }
 
-    if (isTracking) {
-      // Get current position and center map
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          centerMap(pos.coords);
+    // Función para actualizar la posición
+    const updatePosition = (position) => {
+      const { latitude, longitude } = position.coords;
+      const latLng = L.latLng(latitude, longitude);
+      
+      if (!markerRef.current) {
+        // Crear el marcador si no existe
+        markerRef.current = L.marker(latLng, {
+          icon: createCustomIcon(),
+          zIndexOffset: 1000,
+          interactive: false
+        }).addTo(map);
+      } else {
+        // Actualizar posición si ya existe
+        markerRef.current.setLatLng(latLng);
+      }
+      
+      // Centrar el mapa en la ubicación
+      map.setView(latLng, 15);
+    };
 
-          // Set up position watcher for updates
-          cleanupWatch();
-          watchIdRef.current = navigator.geolocation.watchPosition(
-            handlePositionUpdate,
-            handlePositionError,
-            {
-              enableHighAccuracy: true,
-              maximumAge: 10000,
-              timeout: 5000,
-            }
-          );
-        },
-        handlePositionError,
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-        }
-      );
-    } else {
-      cleanupWatch();
-    }
+    // Función para manejar errores
+    const handleError = (error) => {
+      console.error("Error getting location:", error);
+      alert("No se pudo obtener la ubicación actual. Asegúrate de haber otorgado los permisos de ubicación.");
+      onTrackingChange(false);
+    };
 
-    return cleanupWatch;
-  }, [
-    isTracking,
-    centerMap,
-    handlePositionUpdate,
-    handlePositionError,
-    cleanupWatch,
-  ]);
+    // Opciones de geolocalización
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    };
 
-  if (!isTracking || !position) return null;
+    // Obtener posición actual
+    navigator.geolocation.getCurrentPosition(
+      updatePosition,
+      handleError,
+      options
+    );
 
-  return (
-    <Marker position={position}>
-      <Popup>Tu ubicación actual</Popup>
-    </Marker>
-  );
-});
+    // Iniciar seguimiento continuo
+    watchId.current = navigator.geolocation.watchPosition(
+      updatePosition,
+      handleError,
+      options
+    );
 
-LocationMarker.displayName = "LocationMarker";
+    // Limpieza al desmontar o cuando cambie isTracking
+    return () => {
+      if (watchId.current) {
+        navigator.geolocation.clearWatch(watchId.current);
+        watchId.current = null;
+      }
+      if (markerRef.current) {
+        map.removeLayer(markerRef.current);
+        markerRef.current = null;
+      }
+    };
+  }, [isTracking, map, onTrackingChange]);
 
-/**
- * Componente para los botones de tipo de mapa
- */
-const MapTypeButton = (props) => {
-  const { mapType, currentMapType, onChange, icon: Icon, label } = props;
-
-  return (
-    <button
-      type="button"
-      className={`btn-map-type btn-${mapType} ${
-        currentMapType === mapType ? "active" : ""
-      }`}
-      onClick={() => onChange(mapType)}
-      title={`Vista ${label}`}
-      aria-label={`Cambiar a vista ${label}`}
-    >
-      <Icon className="btn-icon" />
-    </button>
-  );
+  return null;
 };
 
 /**
  * Componente principal del mapa
  */
 const Mapa = () => {
+  // Obtener límites y estado de capas del contexto
+  const { cdmxBoundaries, cdmxLoading, cdmxError, activeLayers } = useGeoFeatures();
   const [isTracking, setIsTracking] = useState(false);
   const [mapType, setMapType] = useState(MAP_TYPES.STREETS);
+  const mapRef = useRef(null);
 
-  const toggleTracking = useCallback(() => {
-    setIsTracking((prev) => !prev);
+  // Referencia al mapa de Leaflet
+  const [leafletMap, setLeafletMap] = useState(null);
+
+  // Manejar clic en el botón de ubicación
+  const handleLocateClick = useCallback(() => {
+    // Alternar el estado de seguimiento
+    setIsTracking(prev => !prev);
+    
+    // Si el navegador no soporta geolocalización, mostrar un mensaje
+    if (!navigator.geolocation) {
+      alert("La geolocalización no es compatible con este navegador");
+      setIsTracking(false);
+    }
   }, []);
 
+  // Manejar cambio de tipo de mapa
   const handleMapTypeChange = useCallback((type) => {
     setMapType(type);
   }, []);
 
-  const mapControls = useMemo(
-    () => (
-      <div className="map-controls">
-        <button
-          type="button"
-          className={`map-btn btn-locate ${isTracking ? "active" : ""}`}
-          onClick={toggleTracking}
-          title={isTracking ? "Siguiendo ubicación" : "Ubicarme"}
-          aria-label={
-            isTracking ? "Dejar de seguir ubicación" : "Centrar en mi ubicación"
-          }
-        >
-          <FaLocationArrow className="btn-icon" />
-        </button>
+  // Efecto para configurar controles personalizados
+  useEffect(() => {
+    if (!mapRef.current) return;
 
-        <div className="map-type-buttons">
-          <MapTypeButton
-            mapType={MAP_TYPES.STREETS}
-            currentMapType={mapType}
-            onChange={handleMapTypeChange}
-            icon={FaRoad}
-            label="de carreteras"
-          />
-          <MapTypeButton
-            mapType={MAP_TYPES.SATELLITE}
-            currentMapType={mapType}
-            onChange={handleMapTypeChange}
-            icon={FaSatellite}
-            label="satelital"
-          />
-          <MapTypeButton
-            mapType={MAP_TYPES.TERRAIN}
-            currentMapType={mapType}
-            onChange={handleMapTypeChange}
-            icon={FaMountain}
-            label="de relieve"
-          />
-        </div>
-      </div>
-    ),
-    [isTracking, mapType, toggleTracking, handleMapTypeChange]
-  );
+    const map = mapRef.current;
 
+    // Agregar control de zoom personalizado
+    const zoomControl = L.control.zoom({
+      position: 'topright',
+      zoomInTitle: 'Acercar',
+      zoomOutTitle: 'Alejar'
+    });
+    zoomControl.addTo(map);
+
+    // Agregar botón de inicio personalizado
+    const customControls = L.control({ position: 'topright' });
+    customControls.onAdd = function() {
+      const div = L.DomUtil.create('div', 'custom-control');
+      const homeButton = L.DomUtil.create('button', 'map-btn', div);
+      homeButton.innerHTML = '<i class="fas fa-home"></i>';
+      homeButton.onclick = () => {
+        map.fitBounds(CDMX_BOUNDS);
+      };
+      return div;
+    };
+    customControls.addTo(map);
+
+    // Limpiar al desmontar
+    return () => {
+      if (map) {
+        map.off();
+        map.remove();
+      }
+    };
+  }, []);
+
+  // Renderizar el mapa con controles
   return (
-    <div className="map-wrapper">
-      {mapControls}
-
+    <div className="map-container">
       <MapContainer
-        center={MAP_CENTER}
-        zoom={12}
-        minZoom={10}
-        maxBounds={MAP_BOUNDS}
-        maxBoundsViscosity={0.8}
-        className="map-container"
+        center={MAP_CONFIG.center}
+        zoom={MAP_CONFIG.zoom}
+        style={{ height: "100%", width: "100%" }}
         zoomControl={false}
+        maxBounds={CDMX_BOUNDS}
+        maxBoundsViscosity={0.5}
+        minZoom={10}
+        whenCreated={(map) => {
+          mapRef.current = map;
+          setLeafletMap(map);
+          // Forzar evento de redimensionamiento
+          setTimeout(() => {
+            map.invalidateSize();
+          }, 100);
+        }}
       >
+        {/* Capa base */}
         <TileLayer {...TILE_LAYERS[mapType]} />
+
+        {/* Capa WMS de CDMX */}
+        {activeLayers.cdmx && cdmxBoundaries?.type === "wms" && (
+          <WMSTileLayer
+            key="cdmx-wms-layer"
+            url="http://localhost:8080/geoserver/prueba/wms"
+            layers="prueba:Alcaldia_sedeco"
+            format="image/png"
+            transparent={true}
+            version="1.1.0"
+            crs={L.CRS.EPSG3857}
+            opacity={0.8}
+            zIndex={1000}
+            pane="overlayPane"
+          />
+        )}
+
+        {/* Estados de carga y error */}
+        {activeLayers.cdmx && cdmxLoading && (
+          <div className="map-overlay">Cargando límites de la CDMX...</div>
+        )}
+        {cdmxError && <div className="map-overlay error">{cdmxError}</div>}
+
+        {/* Marcador de ubicación */}
         <LocationMarker
           isTracking={isTracking}
           onTrackingChange={setIsTracking}
         />
+
+        {/* Controles del mapa */}
+        <div className="map-controls">
+          <button
+            type="button"
+            className={`map-btn btn-locate ${isTracking ? "active" : ""}`}
+            onClick={handleLocateClick}
+            title={isTracking ? "Siguiendo ubicación" : "Ubicarme"}
+            aria-label={
+              isTracking ? "Dejar de seguir ubicación" : "Centrar en mi ubicación"
+            }
+          >
+            <FaLocationArrow />
+          </button>
+
+          {/* Controles de tipo de mapa */}
+          <div className="map-type-controls">
+            <MapTypeButton
+              mapType={MAP_TYPES.STREETS}
+              currentMapType={mapType}
+              onChange={handleMapTypeChange}
+              icon={FaRoad}
+              label="Calles"
+            />
+            <MapTypeButton
+              mapType={MAP_TYPES.SATELLITE}
+              currentMapType={mapType}
+              onChange={handleMapTypeChange}
+              icon={FaSatellite}
+              label="Satélite"
+            />
+            <MapTypeButton
+              mapType={MAP_TYPES.TERRAIN}
+              currentMapType={mapType}
+              onChange={handleMapTypeChange}
+              icon={FaMountain}
+              label="Relieve"
+            />
+          </div>
+        </div>
       </MapContainer>
     </div>
   );

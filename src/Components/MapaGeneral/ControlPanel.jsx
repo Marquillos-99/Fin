@@ -1,49 +1,86 @@
 import React, { useState, useCallback } from "react";
+import { FaChevronDown, FaChevronRight } from "react-icons/fa";
+import { useGeoFeatures } from "../../context/GeoFeaturesContext";
+import "../../Styles/MapaGeneral/ControlPanel.css";
 
 // Reusable Checkbox Component
-const Checkbox = ({ id, label, checked, onChange, isBold = false, level = 0 }) => (
-  <div style={{ margin: "5px 0", marginLeft: `${level * 20}px` }}>
-    <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={() => onChange(id)}
-        style={{ marginRight: "8px" }}
-      />
-      <span style={{ fontWeight: isBold ? "bold" : "normal" }}>{label}</span>
-    </label>
-  </div>
-);
+const Checkbox = React.memo(({ id, label, checked, onChange, level = 1 }) => {
+  const handleChange = useCallback((e) => {
+    e.stopPropagation();
+    onChange(id, e.target.checked);
+  }, [id, onChange]);
+
+  return (
+    <div className="checkbox-container" style={{ '--level': level }}>
+      <label className="checkbox-label">
+        <input
+          type="checkbox"
+          checked={!!checked}
+          onChange={handleChange}
+          onClick={(e) => e.stopPropagation()}
+        />
+        <span className="checkmark"></span>
+        <span className="label-text">{label}</span>
+      </label>
+    </div>
+  );
+});
 
 // Category Component
-const Category = ({ category, options, selectedOptions, onCheckboxChange }) => {
+const Category = React.memo(({ 
+  id, 
+  label, 
+  options = [], 
+  isExpanded, 
+  onToggle, 
+  onToggleOption,
+  selectedOptions = {},
+  level = 0 
+}) => {
+  const hasChildren = options && options.length > 0;
+  
   return (
-    <div style={{ marginBottom: "10px" }}>
-      <Checkbox
-        id={category.id}
-        label={category.label}
-        checked={selectedOptions[category.id]}
-        onChange={onCheckboxChange}
-        isBold
-      />
+    <div className={`category level-${level}`}>
+      <div 
+        className="category-header" 
+        onClick={() => hasChildren && onToggle(id)}
+      >
+        {hasChildren && (
+          <span className="toggle-icon">
+            {isExpanded ? <FaChevronDown size={12} /> : <FaChevronRight size={12} />}
+          </span>
+        )}
+        <Checkbox
+          id={id}
+          label={label}
+          checked={!!selectedOptions[id]}
+          onChange={onToggleOption}
+          level={level}
+        />
+      </div>
       
-      {selectedOptions[category.id] && (
-        <div>
-          {options.map((option) => (
-            <div key={option.id}>
+      {hasChildren && isExpanded && (
+        <div className="sub-options">
+          {options.map(option => (
+            <div key={option.id} className="option-item">
               {option.children ? (
                 <Category
-                  category={option}
+                  id={option.id}
+                  label={option.label}
                   options={option.children}
+                  isExpanded={isExpanded}
+                  onToggle={onToggle}
+                  onToggleOption={onToggleOption}
                   selectedOptions={selectedOptions}
-                  onCheckboxChange={onCheckboxChange}
+                  level={level + 1}
                 />
               ) : (
                 <Checkbox
                   id={option.id}
                   label={option.label}
-                  checked={selectedOptions[option.id]}
-                  onChange={onCheckboxChange}
+                  checked={!!selectedOptions[option.id]}
+                  onChange={onToggleOption}
+                  level={level + 1}
                 />
               )}
             </div>
@@ -52,89 +89,50 @@ const Category = ({ category, options, selectedOptions, onCheckboxChange }) => {
       )}
     </div>
   );
-};
+});
 
 const ControlPanel = () => {
-  const [selectedOptions, setSelectedOptions] = useState({
-    // Agua category
-    agua: false,
-    cuerposAguaSuperficiales: false,
-    aguasSubterraneas: false,
-    cuencasHidrologicas: false,
-    zonasRecargaAcuiferos: false,
-    usosDelAgua: false,
-    regionesHidrologicas: false,
-    
-    // Aire y Atmósfera category
-    aireAtmosfera: false,
-    simat: false,
-    emisionesAtmosfericas: false,
-    fuentesFijas: false,
-    fuentesMoviles: false,
-    radiacionSolar: false,
-    
-    // Ordenamiento Ecológico category
-    ordenamientoEcologico: false,
-    anp: false,
-    anpFederal: false,
-    anpLocal: false,
-    ava: false,
-    avaBarrancas: false,
-    avaBosquesUrbanos: false,
-    suelosConservacion: false,
-    reforestacion: false,
-    reforestacionLineal: false,
-    incendiosForestales: false,
-    accionesPrevencionIncendios: false,
-    obrasConservacionAguaSuelo: false,
-    notificacionesSaneamientoForestal: false,
-    podasPreventivasSanitarias: false,
-    sitiosMonitoreoForestal: false
+  const { toggleLayer, activeLayers } = useGeoFeatures();
+  
+  const [expandedCategories, setExpandedCategories] = useState({
+    agua: true,
+    aire: true,
+    ordenamiento: true,
+    cdmx: true,
   });
 
-  const handleCheckboxChange = useCallback((option) => {
-    setSelectedOptions(prev => {
-      const newState = !prev[option];
-      const updates = { [option]: newState };
-
-      // Define parent-child relationships
-      const relationships = {
-        agua: ["cuerposAguaSuperficiales", "aguasSubterraneas", "cuencasHidrologicas", "zonasRecargaAcuiferos", "usosDelAgua", "regionesHidrologicas"],
-        aireAtmosfera: ["simat", "emisionesAtmosfericas", "radiacionSolar"],
-        emisionesAtmosfericas: ["fuentesFijas", "fuentesMoviles"],
-        ordenamientoEcologico: ["anp", "ava", "suelosConservacion", "reforestacion", "reforestacionLineal", "incendiosForestales", "accionesPrevencionIncendios", "obrasConservacionAguaSuelo", "notificacionesSaneamientoForestal", "podasPreventivasSanitarias", "sitiosMonitoreoForestal"],
-        anp: ["anpFederal", "anpLocal"],
-        ava: ["avaBarrancas", "avaBosquesUrbanos"]
-      };
-
-      // If unchecking a parent, uncheck all children
-      if (!newState && relationships[option]) {
-        relationships[option].forEach(child => {
-          updates[child] = false;
-          // Also uncheck grandchildren if they exist
-          if (relationships[child]) {
-            relationships[child].forEach(grandchild => {
-              updates[grandchild] = false;
-            });
-          }
-        });
-      }
-
-      // If checking a child, ensure parent is checked
-      if (newState) {
-        Object.entries(relationships).forEach(([parent, children]) => {
-          if (children.includes(option)) {
-            updates[parent] = true;
-          }
-        });
-      }
-
-      return { ...prev, ...updates };
-    });
+  // Toggle category expansion
+  const toggleCategory = useCallback((categoryId) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryId]: !prev[categoryId]
+    }));
   }, []);
+
+  // Handle layer toggles
+  const handleToggleOption = useCallback((optionId) => {
+    // Map option IDs to layer names
+    const layerMap = {
+      cdmxLayer: 'cdmx',
+      // Add other layer mappings here
+    };
+
+    const layerName = layerMap[optionId] || optionId;
+    toggleLayer(layerName);
+    
+    // Return false to prevent default behavior
+    return false;
+  }, [toggleLayer]);
 
   // Define categories and their options
   const categories = [
+    {
+      id: "cdmx",
+      label: "CDMX",
+      options: [
+        { id: "cdmxLayer", label: "Límites de la CDMX" }
+      ]
+    },
     {
       id: "agua",
       label: "Agua",
@@ -197,18 +195,24 @@ const ControlPanel = () => {
   ];
 
   return (
-    <div className="control-panel-content">
-      <h3 style={{ marginTop: 0, marginBottom: "15px" }}>Opciones del Mapa</h3>
-      
-      {categories.map((category) => (
-        <Category
-          key={category.id}
-          category={category}
-          options={category.options}
-          selectedOptions={selectedOptions}
-          onCheckboxChange={handleCheckboxChange}
-        />
-      ))}
+    <div className="control-panel">
+      <div className="control-panel-inner">
+        <h3>Capas del Mapa</h3>
+        <div className="categories-container">
+          {categories.map(category => (
+            <Category
+              key={category.id}
+              id={category.id}
+              label={category.label}
+              options={category.options}
+              isExpanded={expandedCategories[category.id]}
+              onToggle={toggleCategory}
+              onToggleOption={handleToggleOption}
+              selectedOptions={activeLayers}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

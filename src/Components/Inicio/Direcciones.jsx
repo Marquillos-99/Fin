@@ -1,19 +1,25 @@
 import React, { useState, useCallback } from "react";
+import PropTypes from "prop-types";
 import { FaArrowRight } from "react-icons/fa";
 import "../../Styles/Inicio/Direcciones.css";
-import dgcaImage from "../../assets/DGCA.webp";
-import dgeiraImage from "../../assets/Regulacion.webp";
-import dgsanpavaImage from "../../assets/sanpava.webp";
-import dgzcfsImage from "../../assets/zoo.webp";
 
-// Constants
+// Importar imágenes
+const cardImages = {
+  dgca: new URL("../../assets/DGCA.webp", import.meta.url).href,
+  dgeira: new URL("../../assets/Regulacion.webp", import.meta.url).href,
+  dgsanpava: new URL("../../assets/sanpava.webp", import.meta.url).href,
+  dgzcfs: new URL("../../assets/zoo.webp", import.meta.url).href,
+};
+
+// Constantes para las direcciones
 const DIRECCIONES = [
   {
     id: "dgca",
     title: "DGCA",
     fullName: "Dirección General de Calidad del Aire",
     gradient: "linear-gradient(135deg, var(--color-blue), #50c9ce)",
-    description: "Monitoreo y mejora de la calidad del aire",
+    description: "",
+    hasImage: true,
   },
   {
     id: "dgeira",
@@ -21,7 +27,8 @@ const DIRECCIONES = [
     fullName:
       "Dirección General de Evaluación de Impacto y Regulación Ambiental",
     gradient: "linear-gradient(135deg, var(--color-yellow), #f5a623)",
-    description: "Evaluación de impacto ambiental y regulación",
+    description: "",
+    hasImage: true,
   },
   {
     id: "dgzcfs",
@@ -29,7 +36,8 @@ const DIRECCIONES = [
     fullName:
       "Dirección General de Zoológicos y Conservación de la Fauna Silvestre",
     gradient: "linear-gradient(135deg, var(--color-green), #56ab2f)",
-    description: "Conservación de fauna silvestre y zoológicos",
+    description: "",
+    hasImage: true,
   },
   {
     id: "dgsanpava",
@@ -37,14 +45,16 @@ const DIRECCIONES = [
     fullName:
       "Dirección General de Áreas Naturales Protegidas y Valor Ambiental",
     gradient: "linear-gradient(135deg, var(--color-pink), #8f3aaf)",
-    description: "Protección de áreas naturales y valor ambiental",
+    description: "",
+    hasImage: true,
   },
   {
-    id: "dgcpca",
-    title: "DGCPCA",
+    id: "dgcpc",
+    title: "DGCPC",
     fullName: "Dirección General de Políticas para el Cambio Climático",
     gradient: "linear-gradient(135deg, #ff416c, #d0021b)",
     description: "Políticas y acciones contra el cambio climático",
+    hasImage: false,
   },
   {
     id: "dgira",
@@ -52,6 +62,7 @@ const DIRECCIONES = [
     fullName: "Dirección General de Inspección y Regulación Ambiental",
     gradient: "linear-gradient(135deg, #50e3c2, #2aab9b)",
     description: "Inspección y regulación ambiental",
+    hasImage: false,
   },
   {
     id: "dgcorenadr",
@@ -60,6 +71,7 @@ const DIRECCIONES = [
       "Dirección General de Corresponsabilidad Ambiental y Desarrollo Rural",
     gradient: "linear-gradient(135deg, #8b572a, #a67b5b)",
     description: "Desarrollo rural y corresponsabilidad ambiental",
+    hasImage: false,
   },
 ];
 
@@ -67,51 +79,63 @@ const DIRECCIONES = [
  * Componente de tarjeta individual para cada dirección
  */
 const DireccionCard = React.memo(
-  ({ title, fullName, gradient, description, isSelected, onClick }) => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        onClick();
-      }
-    };
-
-    // Check which card this is to apply appropriate styles
-    const isDGCACard = title === 'DGCA';
-    const isDGEIRACard = title === 'DGEIRA';
-    const isDGSANPAVACard = title === 'DGSANPAVA';
-    const isDGZCFSCard = title === 'DGZCFS';
-
-    // Get the appropriate background image based on card type
-    let backgroundImage = '';
-    if (isDGCACard) backgroundImage = dgcaImage;
-    else if (isDGEIRACard) backgroundImage = dgeiraImage;
-    else if (isDGSANPAVACard) backgroundImage = dgsanpavaImage;
-    else if (isDGZCFSCard) backgroundImage = dgzcfsImage;
-
-    // Style for cards with background images
-    const cardStyle = backgroundImage
-      ? {
-          backgroundImage: `url(${backgroundImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'brightness(0.9)',
-          transition: 'filter 0.5s ease',
-          '--card-gradient': 'none',
+  ({
+    id,
+    title,
+    fullName,
+    gradient,
+    description,
+    isSelected,
+    onClick,
+    hasImage,
+    imageAlt,
+  }) => {
+    // Manejador de eventos de teclado para accesibilidad
+    const handleKeyDown = useCallback(
+      (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
         }
-      : { "--card-gradient": gradient };
-      
-    // Hover handlers for cards with background images
-    const handleMouseEnter = (e) => {
-      if (backgroundImage) {
-        e.currentTarget.style.filter = 'brightness(1.3)';
-      }
-    };
-    
-    const handleMouseLeave = (e) => {
-      if (backgroundImage) {
-        e.currentTarget.style.filter = 'brightness(0.9)';
-      }
-    };
+      },
+      [onClick]
+    );
+
+    // Estilo para la tarjeta basado en si tiene imagen o no
+    const getCardStyle = useCallback(() => {
+      if (!hasImage) return { "--card-gradient": gradient };
+
+      const imageUrl = cardImages[id];
+      if (!imageUrl) return { "--card-gradient": gradient };
+
+      return {
+        backgroundImage: `url(${imageUrl})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        filter: "brightness(0.9)",
+        transition: "filter 0.5s ease",
+        "--card-gradient": "none",
+      };
+    }, [hasImage, id, gradient]);
+
+    // Manejadores de hover para tarjetas con imágenes
+    const handleMouseEnter = useCallback(
+      (e) => {
+        if (hasImage) {
+          e.currentTarget.style.filter = "brightness(1.3)";
+        }
+      },
+      [hasImage]
+    );
+
+    const handleMouseLeave = useCallback(
+      (e) => {
+        if (hasImage) {
+          e.currentTarget.style.filter = "brightness(0.9)";
+        }
+      },
+      [hasImage]
+    );
 
     return (
       <div
@@ -120,10 +144,11 @@ const DireccionCard = React.memo(
         onKeyDown={handleKeyDown}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        style={cardStyle}
+        style={getCardStyle()}
         role="button"
         tabIndex={0}
         aria-label={`Ver información de ${fullName}`}
+        data-testid={`direccion-card-${id}`}
       >
         <div className="card-content">
           <h3 className="card-title">{title}</h3>
@@ -133,6 +158,7 @@ const DireccionCard = React.memo(
             <FaArrowRight className="card-icon" aria-hidden="true" />
           </div>
         </div>
+        {hasImage && <span className="sr-only">{imageAlt}</span>}
       </div>
     );
   }
@@ -148,20 +174,61 @@ const Direcciones = () => {
     setSelectedId((prevId) => (prevId === id ? null : id));
   }, []);
 
+  // Función para manejar la navegación por teclado
+  const handleKeyDown = useCallback(
+    (e, id) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handleSelect(id);
+      }
+    },
+    [handleSelect]
+  );
+
   return (
     <div className="direcciones-container">
       <div className="direcciones-grid">
         {DIRECCIONES.map((direccion) => (
           <DireccionCard
             key={direccion.id}
-            {...direccion}
+            id={direccion.id}
+            title={direccion.title}
+            fullName={direccion.fullName}
+            gradient={direccion.gradient}
+            description={direccion.description}
             isSelected={selectedId === direccion.id}
             onClick={() => handleSelect(direccion.id)}
+            onKeyDown={(e) => handleKeyDown(e, direccion.id)}
+            hasImage={direccion.hasImage}
+            imageAlt={direccion.imageAlt}
+            aria-label={`${direccion.title} - ${direccion.description}`}
           />
         ))}
       </div>
     </div>
   );
-}
+};
+
+// Propiedades por defecto para el componente DireccionCard
+DireccionCard.propTypes = {
+  id: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  fullName: PropTypes.string.isRequired,
+  gradient: PropTypes.string,
+  description: PropTypes.string.isRequired,
+  isSelected: PropTypes.bool,
+  onClick: PropTypes.func.isRequired,
+  onKeyDown: PropTypes.func,
+  hasImage: PropTypes.bool,
+  imageAlt: PropTypes.string,
+};
+
+DireccionCard.defaultProps = {
+  gradient: "linear-gradient(135deg, #f5f7fa, #c3cfe2)",
+  isSelected: false,
+  hasImage: false,
+  imageAlt: "",
+  onKeyDown: () => {},
+};
 
 export default React.memo(Direcciones);

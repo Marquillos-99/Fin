@@ -13,7 +13,13 @@
 .map-container {
   position: relative;
   width: 100%;
-  height: calc(100vh - 150px);
+  height: 100vh;
+  min-height: 500px;
+}
+
+/* Ensure the map takes full height of its container */
+.map-container > div {
+  height: 100% !important;
 }
 
 /* Panel Toggle Button */
