@@ -3,14 +3,8 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import { MapContainer, TileLayer, WMSTileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import {
-  FaLocationArrow,
-  FaRoad,
-  FaSatellite,
-  FaMountain,
-} from "react-icons/fa";
+import { FaRoad, FaSatellite, FaMountain, FaLocationArrow } from "react-icons/fa";
 import { useGeoFeatures } from "../../context/GeoFeaturesContext";
-import "leaflet/dist/leaflet.css";
 import "../../Styles/MapaGeneral/Mapa.css";
 
 // Constants
@@ -179,7 +173,7 @@ const Mapa = () => {
   const mapRef = useRef(null);
 
   // Referencia al mapa de Leaflet
-  const [leafletMap, setLeafletMap] = useState(null);
+  const [, setLeafletMap] = useState(null);
 
   // Manejar clic en el botón de ubicación
   const handleLocateClick = useCallback(() => {

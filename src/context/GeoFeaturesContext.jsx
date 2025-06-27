@@ -148,4 +148,5 @@ export const GeoFeaturesProvider = ({ children }) => {
 };
 
 export const useGeoFeatures = () => useContext(GeoFeaturesContext);
+
 export default GeoFeaturesContext;
